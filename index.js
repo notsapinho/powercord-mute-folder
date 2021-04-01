@@ -8,23 +8,26 @@ module.exports = class MuteFolder extends Plugin {
         const GuildFolderContextMenu = await getModule((m) => m.default && m.default.displayName === "GuildFolderContextMenu");
         const getGuildFolderById = (await getModule(["getGuildFolderById"])).getGuildFolderById;
         const updateGuildNotificationSettings = (await getModule(["updateGuildNotificationSettings"])).updateGuildNotificationSettings;
+        const { getState } = await getModule(["getMuteConfig"]);
 
         inject("mute-folder", GuildFolderContextMenu, "default", (args, res) => {
+            const currFolder = getGuildFolderById(args[0].folderId);
+            const unmutedGuilds = Object.values(getState().userGuildSettings).filter((g) => currFolder.guildIds.includes(g.guild_id) && !g.muted && !g.suppress_everyone && !g.suppress_roles);
+            const mutedGuilds = Object.values(getState().userGuildSettings).filter((g) => currFolder.guildIds.includes(g.guild_id) && g.muted && g.suppress_everyone && g.suppress_roles);
+
             res.props.children.unshift(
                 React.createElement(menu.MenuItem, {
                     id: "mute-folder",
                     label: "Mute folder",
-                    disabled: !args[0].unread,
+                    disabled: !unmutedGuilds.length,
                     action: () => {
-                        const currFolder = getGuildFolderById(args[0].folderId);
-
-                        for (const guild of currFolder.guildIds) {
-                            updateGuildNotificationSettings(guild, { muted: true, suppress_everyone: true, suppress_roles: true });
+                        for (const guild of unmutedGuilds) {
+                            updateGuildNotificationSettings(guild.guild_id, { muted: true, suppress_everyone: true, suppress_roles: true });
                         }
 
                         powercord.api.notices.sendToast("mute-folder-success", {
                             header: "Done!",
-                            content: `Muted ${currFolder.guildIds.length} guild(s) in ${currFolder.folderName}`,
+                            content: `Muted ${unmutedGuilds.length} guild(s) in ${currFolder.folderName || "Folder"}`,
                             type: "success",
                             buttons: [
                                 {
@@ -40,17 +43,15 @@ module.exports = class MuteFolder extends Plugin {
                 React.createElement(menu.MenuItem, {
                     id: "unmute-folder",
                     label: "Unmute folder",
-                    disabled: args[0].unread,
+                    disabled: !mutedGuilds.length,
                     action: () => {
-                        const currFolder = getGuildFolderById(args[0].folderId);
-
-                        for (const guild of currFolder.guildIds) {
-                            updateGuildNotificationSettings(guild, { muted: false, suppress_everyone: false, suppress_roles: false });
+                        for (const guild of mutedGuilds) {
+                            updateGuildNotificationSettings(guild.guild_id, { muted: false, suppress_everyone: false, suppress_roles: false });
                         }
 
                         powercord.api.notices.sendToast("unmute-folder-success", {
                             header: "Done!",
-                            content: `Unmuted ${currFolder.guildIds.length} guild(s) in ${currFolder.folderName}`,
+                            content: `Unmuted ${mutedGuilds.length} guild(s) in ${currFolder.folderName || "Folder"}`,
                             type: "success",
                             buttons: [
                                 {
