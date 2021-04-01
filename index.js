@@ -8,12 +8,13 @@ module.exports = class MuteFolder extends Plugin {
         const GuildFolderContextMenu = await getModule((m) => m.default && m.default.displayName === "GuildFolderContextMenu");
         const { getGuildFolderById } = await getModule(["getGuildFolderById"]);
         const { updateGuildNotificationSettings } = await getModule(["updateGuildNotificationSettings"]);
-        const { getState } = await getModule(["getMuteConfig"]);
+        const { isMuted } = await getModule(["getMuteConfig"]);
 
         inject("mute-folder", GuildFolderContextMenu, "default", (args, res) => {
             const currFolder = getGuildFolderById(args[0].folderId);
-            const unmutedGuilds = Object.values(getState().userGuildSettings).filter((g) => currFolder.guildIds.includes(g.guild_id) && (!g.muted || !g.suppress_everyone || !g.suppress_roles));
-            const mutedGuilds = Object.values(getState().userGuildSettings).filter((g) => currFolder.guildIds.includes(g.guild_id) && g.muted && g.suppress_everyone && g.suppress_roles);
+
+            const unmutedGuilds = currFolder.guildIds.filter((g) => !isMuted(g));
+            const mutedGuilds = currFolder.guildIds.filter((g) => isMuted(g));
 
             res.props.children.unshift(
                 React.createElement(menu.MenuItem, {
@@ -22,7 +23,7 @@ module.exports = class MuteFolder extends Plugin {
                     disabled: mutedGuilds.length === currFolder.guildIds.length,
                     action: () => {
                         for (const guild of unmutedGuilds) {
-                            updateGuildNotificationSettings(guild.guild_id, { muted: true, suppress_everyone: true, suppress_roles: true });
+                            updateGuildNotificationSettings(guild, { muted: true, suppress_everyone: true, suppress_roles: true });
                         }
 
                         powercord.api.notices.sendToast("mute-folder-success", {
@@ -46,7 +47,7 @@ module.exports = class MuteFolder extends Plugin {
                     disabled: unmutedGuilds.length === currFolder.guildIds.length,
                     action: () => {
                         for (const guild of mutedGuilds) {
-                            updateGuildNotificationSettings(guild.guild_id, { muted: false, suppress_everyone: false, suppress_roles: false });
+                            updateGuildNotificationSettings(guild, { muted: false, suppress_everyone: false, suppress_roles: false });
                         }
 
                         powercord.api.notices.sendToast("unmute-folder-success", {
