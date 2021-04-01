@@ -12,14 +12,17 @@ module.exports = class MuteFolder extends Plugin {
 
         inject("mute-folder", GuildFolderContextMenu, "default", (args, res) => {
             const currFolder = getGuildFolderById(args[0].folderId);
-            const unmutedGuilds = Object.values(getState().userGuildSettings).filter((g) => currFolder.guildIds.includes(g.guild_id) && !g.muted && !g.suppress_everyone && !g.suppress_roles);
+            const unmutedGuilds = Object.values(getState().userGuildSettings).filter((g) => currFolder.guildIds.includes(g.guild_id) && (!g.muted || !g.suppress_everyone || !g.suppress_roles));
             const mutedGuilds = Object.values(getState().userGuildSettings).filter((g) => currFolder.guildIds.includes(g.guild_id) && g.muted && g.suppress_everyone && g.suppress_roles);
+
+            console.log(`Desmutados: ${unmutedGuilds.length}`);
+            console.log(`Mutados: ${mutedGuilds.length}`);
 
             res.props.children.unshift(
                 React.createElement(menu.MenuItem, {
                     id: "mute-folder",
                     label: "Mute folder",
-                    disabled: !unmutedGuilds.length,
+                    disabled: mutedGuilds.length === currFolder.guildIds.length,
                     action: () => {
                         for (const guild of unmutedGuilds) {
                             updateGuildNotificationSettings(guild.guild_id, { muted: true, suppress_everyone: true, suppress_roles: true });
@@ -43,7 +46,7 @@ module.exports = class MuteFolder extends Plugin {
                 React.createElement(menu.MenuItem, {
                     id: "unmute-folder",
                     label: "Unmute folder",
-                    disabled: !mutedGuilds.length,
+                    disabled: unmutedGuilds.length === currFolder.guildIds.length,
                     action: () => {
                         for (const guild of mutedGuilds) {
                             updateGuildNotificationSettings(guild.guild_id, { muted: false, suppress_everyone: false, suppress_roles: false });
