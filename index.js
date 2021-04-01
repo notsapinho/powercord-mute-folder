@@ -6,17 +6,14 @@ module.exports = class MuteFolder extends Plugin {
     async startPlugin() {
         const menu = await getModule(["MenuItem"]);
         const GuildFolderContextMenu = await getModule((m) => m.default && m.default.displayName === "GuildFolderContextMenu");
-        const getGuildFolderById = (await getModule(["getGuildFolderById"])).getGuildFolderById;
-        const updateGuildNotificationSettings = (await getModule(["updateGuildNotificationSettings"])).updateGuildNotificationSettings;
+        const { getGuildFolderById } = await getModule(["getGuildFolderById"]);
+        const { updateGuildNotificationSettings } = await getModule(["updateGuildNotificationSettings"]);
         const { getState } = await getModule(["getMuteConfig"]);
 
         inject("mute-folder", GuildFolderContextMenu, "default", (args, res) => {
             const currFolder = getGuildFolderById(args[0].folderId);
             const unmutedGuilds = Object.values(getState().userGuildSettings).filter((g) => currFolder.guildIds.includes(g.guild_id) && (!g.muted || !g.suppress_everyone || !g.suppress_roles));
             const mutedGuilds = Object.values(getState().userGuildSettings).filter((g) => currFolder.guildIds.includes(g.guild_id) && g.muted && g.suppress_everyone && g.suppress_roles);
-
-            console.log(`Desmutados: ${unmutedGuilds.length}`);
-            console.log(`Mutados: ${mutedGuilds.length}`);
 
             res.props.children.unshift(
                 React.createElement(menu.MenuItem, {
