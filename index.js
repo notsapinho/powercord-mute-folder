@@ -30,6 +30,7 @@ module.exports = class MuteFolder extends Plugin {
                             header: "Done!",
                             content: `Muted ${unmutedGuilds.length} guild(s) in ${currFolder.folderName || "Folder"}`,
                             type: "success",
+							timeout: 10e3,
                             buttons: [
                                 {
                                     text: "OK",
@@ -54,6 +55,7 @@ module.exports = class MuteFolder extends Plugin {
                             header: "Done!",
                             content: `Unmuted ${mutedGuilds.length} guild(s) in ${currFolder.folderName || "Folder"}`,
                             type: "success",
+							timeout: 10e3,
                             buttons: [
                                 {
                                     text: "OK",
