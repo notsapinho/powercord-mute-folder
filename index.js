@@ -1,9 +1,13 @@
-const { getModule, React } = require("powercord/webpack");
+const { getModule, React, i18n: { Messages } } = require("powercord/webpack");
 const { inject, uninject } = require("powercord/injector");
 const { Plugin } = require("powercord/entities");
 
+const i18n = require("./i18n");
+
 module.exports = class MuteFolder extends Plugin {
     async startPlugin() {
+        powercord.api.i18n.loadAllStrings(i18n);
+
         const menu = await getModule(["MenuItem"]);
         const GuildFolderContextMenu = await getModule((m) => m.default && m.default.displayName === "GuildFolderContextMenu");
         const { getGuildFolderById } = await getModule(["getGuildFolderById"]);
@@ -19,7 +23,7 @@ module.exports = class MuteFolder extends Plugin {
             res.props.children.unshift(
                 React.createElement(menu.MenuItem, {
                     id: "mute-folder",
-                    label: "Mute folder",
+                    label: Messages.MTF_MUTE_LABEL,
                     disabled: mutedGuilds.length === currFolder.guildIds.length,
                     action: () => {
                         for (const guild of unmutedGuilds) {
@@ -30,7 +34,7 @@ module.exports = class MuteFolder extends Plugin {
                             header: "Done!",
                             content: `Muted ${unmutedGuilds.length} guild(s) in ${currFolder.folderName || "Folder"}`,
                             type: "success",
-							timeout: 10e3,
+                            timeout: 10e3,
                             buttons: [
                                 {
                                     text: "OK",
@@ -44,7 +48,7 @@ module.exports = class MuteFolder extends Plugin {
                 }),
                 React.createElement(menu.MenuItem, {
                     id: "unmute-folder",
-                    label: "Unmute folder",
+                    label: Messages.MTF_UNMUTE_LABEL,
                     disabled: unmutedGuilds.length === currFolder.guildIds.length,
                     action: () => {
                         for (const guild of mutedGuilds) {
@@ -55,7 +59,7 @@ module.exports = class MuteFolder extends Plugin {
                             header: "Done!",
                             content: `Unmuted ${mutedGuilds.length} guild(s) in ${currFolder.folderName || "Folder"}`,
                             type: "success",
-							timeout: 10e3,
+                            timeout: 10e3,
                             buttons: [
                                 {
                                     text: "OK",
