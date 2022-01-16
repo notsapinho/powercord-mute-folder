@@ -2,6 +2,6 @@
    "name": "Mute & Unmute folders",
    "description": "Mute and Unmutes all the guilds in a folder in one click.",
    "author": "notsapinho",
-   "version": "1.0.2",
+   "version": "1.0.3",
    "license": "MIT"
 }
