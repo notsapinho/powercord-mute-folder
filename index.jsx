@@ -10,6 +10,7 @@ const { Plugin } = require("powercord/entities");
 
 const { MenuGroup, MenuItem } = getModule(["MenuGroup", "MenuItem"], false);
 const { getGuildFolderById } = getModule(["getGuildFolderById"], false);
+const { updateGuildNotificationSettings } = getModule(["updateGuildNotificationSettings"], false);
 const { isMuted } = getModule(["getMuteConfig"], false);
 
 const i18n = require("./i18n");
